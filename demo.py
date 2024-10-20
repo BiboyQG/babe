@@ -9,7 +9,7 @@ import requests
 import sys
 
 # 产品列表和DataFrame初始化
-products = ["AU2406.SHF", "AU2412.SHF", "XAUCNY.IDC"]
+products = ["AU2406.SHF", "XAUCNY.IDC"]
 columns = (
     ["Time"]
     + [f"{prod}_Bid" for prod in products]
@@ -146,14 +146,23 @@ class MarketDataDisplay(QWidget):
         for product in products:
             label_bid = QLabel(f"{product}: 等待数据...")
             label_ask = QLabel(f"{product}: 等待数据...")
+            label_latest = QLabel(f"{product}: 等待数据...")
             self.labels_bid[product] = label_bid
             self.labels_ask[product] = label_ask
+            self.labels_latest[product] = label_latest
             self.bid_layout.addWidget(label_bid)
             self.ask_layout.addWidget(label_ask)
-
-            label_latest = QLabel(f"{product}: 等待数据...")
-            self.labels_latest[product] = label_latest
             self.latest_layout.addWidget(label_latest)
+
+        self.labels_bid["Difference"] = QLabel("AU2406.SHF - XAUCNY.IDC: 等待数据...")
+        self.labels_ask["Difference"] = QLabel("AU2406.SHF - XAUCNY.IDC: 等待数据...")
+        self.labels_latest["Difference"] = QLabel(
+            "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+        )
+        self.bid_layout.addWidget(self.labels_bid["Difference"])
+        self.ask_layout.addWidget(self.labels_ask["Difference"])
+        self.latest_layout.addWidget(self.labels_latest["Difference"])
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_labels)
         self.timer.start(1000)
