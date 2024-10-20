@@ -1,11 +1,9 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QGroupBox
 from PyQt5.QtCore import QTimer, QDateTime
-from IPython.display import clear_output
 from WindPy import w
 import pandas as pd
 import threading
 import datetime
-import requests
 import sys
 
 # 产品列表和DataFrame初始化
@@ -15,6 +13,7 @@ columns = (
     + [f"{prod}_Bid" for prod in products]
     + [f"{prod}_Ask" for prod in products]
     + [f"{prod}_Latest" for prod in products]
+    + ["Bid_Difference", "Ask_Difference", "Latest_Difference"]
 )
 df = pd.DataFrame(columns=columns)
 current_data = {prod: {"Bid": None, "Ask": None, "Latest": None} for prod in products}
@@ -46,13 +45,24 @@ def check_trading_hours(now):
 
 def update_dataframe():
     global df
-    clear_output(wait=True)  # 清除之前的输出
     now = datetime.datetime.now()
     if check_trading_hours(now):
         new_data = pd.DataFrame({"Time": [now]})
         for product in products:
             new_data[f"{product}_Bid"] = [current_data[product]["Bid"]]
             new_data[f"{product}_Ask"] = [current_data[product]["Ask"]]
+            new_data[f"{product}_Latest"] = [current_data[product]["Latest"]]
+
+        new_data["Bid_Difference"] = (
+            new_data["AU2406.SHF_Bid"] - new_data["XAUCNY.IDC_Bid"]
+        )
+        new_data["Ask_Difference"] = (
+            new_data["AU2406.SHF_Ask"] - new_data["XAUCNY.IDC_Ask"]
+        )
+        new_data["Latest_Difference"] = (
+            new_data["AU2406.SHF_Latest"] - new_data["XAUCNY.IDC_Latest"]
+        )
+
         df = pd.concat([df, new_data], ignore_index=True)
 
 
@@ -67,7 +77,6 @@ def save_weekly_data():
     filename = f"market_data_{min_date}_to_{max_date}.csv"
     df.to_csv(filename, index=False)
     print(f"数据已保存到 {filename}")
-    clear_output(wait=True)  # 清除保存信息之后的输出
     df = pd.DataFrame(columns=columns)
 
 
@@ -103,14 +112,13 @@ def run_wsq():
         print("WindPy start failed")
         return
     w.wsq(
-        "AU2406.SHF,AU2412.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback
+        "AU2406.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback
     )
 
 
 class MarketDataDisplay(QWidget):
     def __init__(self):
         super().__init__()
-        self.base_bid = None  # 初始化基准Bid价
         self.initUI()
 
     def initUI(self):
@@ -186,30 +194,35 @@ class MarketDataDisplay(QWidget):
                     if ask_price is not None
                     else f"{product}: 等待数据..."
                 )
-
-                if product == "AU2406.SHF":
-                    self.base_bid = bid_price  # 保存AU2406的Bid价以用于差值计算
-
-                if (
-                    self.base_bid is not None
-                    and bid_price is not None
-                    and product != "AU2406.SHF"
-                ):
-                    # 计算与AU2406的差值
-                    diff_bid = bid_price - self.base_bid
-                    diff_ask = ask_price - self.base_bid
-                    text_bid += f" (差值: {diff_bid:.2f})"
-                    text_ask += f" (差值: {diff_ask:.2f})"
-
-                self.labels_bid[product].setText(text_bid)
-                self.labels_ask[product].setText(text_ask)
-
                 text_latest = (
                     f"{product}: {latest_price:.2f}"
                     if latest_price is not None
                     else f"{product}: 等待数据..."
                 )
+
+                self.labels_bid[product].setText(text_bid)
+                self.labels_ask[product].setText(text_ask)
                 self.labels_latest[product].setText(text_latest)
+            
+            bid_diff = latest_data.get("Bid_Difference")
+            ask_diff = latest_data.get("Ask_Difference")
+            latest_diff = latest_data.get("Latest_Difference")
+
+            self.labels_bid["Difference"].setText(
+                f"AU2406.SHF - XAUCNY.IDC: {bid_diff:.2f}"
+                if bid_diff is not None
+                else "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+            )
+            self.labels_ask["Difference"].setText(
+                f"AU2406.SHF - XAUCNY.IDC: {ask_diff:.2f}"
+                if ask_diff is not None
+                else "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+            )
+            self.labels_latest["Difference"].setText(
+                f"AU2406.SHF - XAUCNY.IDC: {latest_diff:.2f}"
+                if latest_diff is not None
+                else "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+            )
 
     def closeEvent(self, event):
         """重写closeEvent以在程序关闭时保存数据。"""
