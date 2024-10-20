@@ -112,7 +112,7 @@ def run_wsq():
         print("WindPy start failed")
         return
     w.wsq(
-        "AU2406.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback
+        "AU2412.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback
     )
 
 
@@ -162,10 +162,10 @@ class MarketDataDisplay(QWidget):
             self.ask_layout.addWidget(label_ask)
             self.latest_layout.addWidget(label_latest)
 
-        self.labels_bid["Difference"] = QLabel("AU2406.SHF - XAUCNY.IDC: 等待数据...")
-        self.labels_ask["Difference"] = QLabel("AU2406.SHF - XAUCNY.IDC: 等待数据...")
+        self.labels_bid["Difference"] = QLabel("AU2412.SHF - XAUCNY.IDC: 等待数据...")
+        self.labels_ask["Difference"] = QLabel("AU2412.SHF - XAUCNY.IDC: 等待数据...")
         self.labels_latest["Difference"] = QLabel(
-            "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+            "AU2412.SHF - XAUCNY.IDC: 等待数据..."
         )
         self.bid_layout.addWidget(self.labels_bid["Difference"])
         self.ask_layout.addWidget(self.labels_ask["Difference"])
@@ -209,19 +209,19 @@ class MarketDataDisplay(QWidget):
             latest_diff = latest_data.get("Latest_Difference")
 
             self.labels_bid["Difference"].setText(
-                f"AU2406.SHF - XAUCNY.IDC: {bid_diff:.2f}"
+                f"AU2412.SHF - XAUCNY.IDC: {bid_diff:.2f}"
                 if bid_diff is not None
-                else "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+                else "AU2412.SHF - XAUCNY.IDC: 等待数据..."
             )
             self.labels_ask["Difference"].setText(
-                f"AU2406.SHF - XAUCNY.IDC: {ask_diff:.2f}"
+                f"AU2412.SHF - XAUCNY.IDC: {ask_diff:.2f}"
                 if ask_diff is not None
-                else "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+                else "AU2412.SHF - XAUCNY.IDC: 等待数据..."
             )
             self.labels_latest["Difference"].setText(
-                f"AU2406.SHF - XAUCNY.IDC: {latest_diff:.2f}"
+                f"AU2412.SHF - XAUCNY.IDC: {latest_diff:.2f}"
                 if latest_diff is not None
-                else "AU2406.SHF - XAUCNY.IDC: 等待数据..."
+                else "AU2412.SHF - XAUCNY.IDC: 等待数据..."
             )
 
     def closeEvent(self, event):
