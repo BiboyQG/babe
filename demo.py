@@ -110,10 +110,7 @@ def schedule_data_updates():
         save_period_data(last_period)
         last_period = None
 
-    if not stop_timer:
-        threading.Timer(
-            1.0, schedule_data_updates
-        ).start()  # Adjust 60 seconds as per your need
+    QTimer.singleShot(1000, schedule_data_updates)
 
 
 def myCallback(indata):
