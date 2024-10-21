@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QGroupBox
 from PyQt5.QtCore import QTimer, QDateTime
+from zoneinfo import ZoneInfo
 from WindPy import w
 import pandas as pd
 import threading
@@ -17,7 +18,7 @@ columns = (
 )
 df = pd.DataFrame(columns=columns)
 current_data = {prod: {"Bid": None, "Ask": None, "Latest": None} for prod in products}
-current_week = datetime.datetime.now().isocalendar()[1]
+current_week = datetime.datetime.now(ZoneInfo("Asia/Shanghai")).isocalendar()[1]
 
 stop_timer = False
 last_period = None
@@ -49,7 +50,7 @@ def check_trading_hours(now):
 
 def update_dataframe():
     global df
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(ZoneInfo("Asia/Shanghai"))
     if check_trading_hours(now):
         new_data = pd.DataFrame({"Time": [now]})
         for product in products:
@@ -86,7 +87,7 @@ def save_period_data(period):
         return
 
     # 获取当前日期
-    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    current_date = datetime.datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d")
     filename = f"market_data_{current_date}_{period}.csv"
     df.to_csv(filename, index=False)
     print(f"{period}时段的数据已保存到 {filename}")
@@ -99,7 +100,7 @@ def schedule_data_updates():
     if stop_timer:
         return
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(ZoneInfo("Asia/Shanghai"))
     current_period = check_trading_hours(now)
 
     if current_period:
