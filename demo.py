@@ -7,7 +7,7 @@ import datetime
 import sys
 
 # 产品列表和DataFrame初始化
-products = ["AU2406.SHF", "XAUCNY.IDC"]
+products = ["AU2412.SHF", "XAUCNY.IDC"]
 columns = (
     ["Time"]
     + [f"{prod}_Bid" for prod in products]
@@ -21,13 +21,6 @@ current_week = datetime.datetime.now().isocalendar()[1]
 
 stop_timer = False
 last_period = None
-
-
-def find_week_start_end(date):
-    """给定日期，返回所在周的开始和结束日期（周一和周日）。"""
-    start = date - datetime.timedelta(days=date.weekday())
-    end = start + datetime.timedelta(days=6)
-    return start, end
 
 
 def check_trading_hours(now):
@@ -65,13 +58,13 @@ def update_dataframe():
             new_data[f"{product}_Latest"] = [current_data[product]["Latest"]]
 
         new_data["Bid_Difference"] = (
-            new_data["AU2406.SHF_Bid"] - new_data["XAUCNY.IDC_Bid"]
+            new_data["AU2412.SHF_Bid"] - new_data["XAUCNY.IDC_Bid"]
         )
         new_data["Ask_Difference"] = (
-            new_data["AU2406.SHF_Ask"] - new_data["XAUCNY.IDC_Ask"]
+            new_data["AU2412.SHF_Ask"] - new_data["XAUCNY.IDC_Ask"]
         )
         new_data["Latest_Difference"] = (
-            new_data["AU2406.SHF_Latest"] - new_data["XAUCNY.IDC_Latest"]
+            new_data["AU2412.SHF_Latest"] - new_data["XAUCNY.IDC_Latest"]
         )
 
         df = pd.concat([df, new_data], ignore_index=True)
@@ -109,6 +102,7 @@ def schedule_data_updates():
         save_period_data(last_period)
         last_period = None
 
+
 def myCallback(indata):
     """处理从WindPy接收的实时数据。"""
     if indata.ErrorCode != 0:
@@ -128,7 +122,7 @@ def run_wsq():
     if w.start().ErrorCode != 0:
         print("WindPy start failed")
         return
-    w.wsq("AU2412.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback)
+    w.wsq(",".join(products), "rt_latest,rt_bid1,rt_ask1", func=myCallback)
 
 
 class MarketDataDisplay(QWidget):
@@ -247,7 +241,7 @@ class MarketDataDisplay(QWidget):
             print("没有数据可保存。")
             event.accept()  # 确认关闭
             return
-        
+
         if last_period:
             save_period_data(last_period)
 
