@@ -58,19 +58,19 @@ def update_dataframe():
             new_data[f"{product}_Latest"] = [current_data[product]["Latest"]]
 
         new_data["Bid_Difference"] = (
-            new_data["AU2412.SHF_Bid"] - new_data["XAUCNY.IDC_Bid"]
+            new_data["XAUCNY.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
             if new_data["AU2412.SHF_Bid"] is not None
             and new_data["XAUCNY.IDC_Bid"] is not None
             else None
         )
         new_data["Ask_Difference"] = (
-            new_data["AU2412.SHF_Ask"] - new_data["XAUCNY.IDC_Ask"]
+            new_data["XAUCNY.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
             if new_data["AU2412.SHF_Ask"] is not None
             and new_data["XAUCNY.IDC_Ask"] is not None
             else None
         )
         new_data["Latest_Difference"] = (
-            new_data["AU2412.SHF_Latest"] - new_data["XAUCNY.IDC_Latest"]
+            new_data["XAUCNY.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
             if new_data["AU2412.SHF_Ask"] is not None
             and new_data["XAUCNY.IDC_Ask"] is not None
             else None
@@ -181,10 +181,10 @@ class MarketDataDisplay(QWidget):
             self.ask_layout.addWidget(label_ask)
             self.latest_layout.addWidget(label_latest)
 
-        self.labels_bid["Difference"] = QLabel("AU2412.SHF - XAUCNY.IDC: 等待数据...")
-        self.labels_ask["Difference"] = QLabel("AU2412.SHF - XAUCNY.IDC: 等待数据...")
+        self.labels_bid["Difference"] = QLabel("XAUCNY.IDC - AU2412.SHF: 等待数据...")
+        self.labels_ask["Difference"] = QLabel("XAUCNY.IDC - AU2412.SHF: 等待数据...")
         self.labels_latest["Difference"] = QLabel(
-            "AU2412.SHF - XAUCNY.IDC: 等待数据..."
+            "XAUCNY.IDC - AU2412.SHF: 等待数据..."
         )
         self.bid_layout.addWidget(self.labels_bid["Difference"])
         self.ask_layout.addWidget(self.labels_ask["Difference"])
@@ -228,19 +228,19 @@ class MarketDataDisplay(QWidget):
             latest_diff = latest_data.get("Latest_Difference")
 
             self.labels_bid["Difference"].setText(
-                f"AU2412.SHF - XAUCNY.IDC: {bid_diff:.2f}"
+                f"XAUCNY.IDC - AU2412.SHF: {bid_diff:.2f}"
                 if bid_diff is not None
-                else "AU2412.SHF - XAUCNY.IDC: 等待数据..."
+                else "XAUCNY.IDC - AU2412.SHF: 等待数据..."
             )
             self.labels_ask["Difference"].setText(
-                f"AU2412.SHF - XAUCNY.IDC: {ask_diff:.2f}"
+                f"XAUCNY.IDC - AU2412.SHF: {ask_diff:.2f}"
                 if ask_diff is not None
-                else "AU2412.SHF - XAUCNY.IDC: 等待数据..."
+                else "XAUCNY.IDC - AU2412.SHF: 等待数据..."
             )
             self.labels_latest["Difference"].setText(
-                f"AU2412.SHF - XAUCNY.IDC: {latest_diff:.2f}"
+                f"XAUCNY.IDC - AU2412.SHF: {latest_diff:.2f}"
                 if latest_diff is not None
-                else "AU2412.SHF - XAUCNY.IDC: 等待数据..."
+                else "XAUCNY.IDC - AU2412.SHF: 等待数据..."
             )
 
     def closeEvent(self, event):
