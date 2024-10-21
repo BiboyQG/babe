@@ -19,6 +19,7 @@ df = pd.DataFrame(columns=columns)
 current_data = {prod: {"Bid": None, "Ask": None, "Latest": None} for prod in products}
 current_week = datetime.datetime.now().isocalendar()[1]
 
+stop_timer = False
 
 def find_week_start_end(date):
     """给定日期，返回所在周的开始和结束日期（周一和周日）。"""
@@ -82,8 +83,9 @@ def save_weekly_data():
 
 def schedule_data_updates():
     """定时调度数据更新任务。"""
-    global current_week
-    threading.Timer(1.0, schedule_data_updates).start()
+    global current_week, stop_timer
+    if stop_timer:
+        return
     update_dataframe()
 
     new_week = datetime.datetime.now().isocalendar()[1]
@@ -111,9 +113,7 @@ def run_wsq():
     if w.start().ErrorCode != 0:
         print("WindPy start failed")
         return
-    w.wsq(
-        "AU2412.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback
-    )
+    w.wsq("AU2412.SHF,XAUCNY.IDC", "rt_latest,rt_bid1,rt_ask1", func=myCallback)
 
 
 class MarketDataDisplay(QWidget):
@@ -203,7 +203,7 @@ class MarketDataDisplay(QWidget):
                 self.labels_bid[product].setText(text_bid)
                 self.labels_ask[product].setText(text_ask)
                 self.labels_latest[product].setText(text_latest)
-            
+
             bid_diff = latest_data.get("Bid_Difference")
             ask_diff = latest_data.get("Ask_Difference")
             latest_diff = latest_data.get("Latest_Difference")
@@ -226,6 +226,8 @@ class MarketDataDisplay(QWidget):
 
     def closeEvent(self, event):
         """重写closeEvent以在程序关闭时保存数据。"""
+        global stop_timer
+        stop_timer = True
         if df.empty:
             print("没有数据可保存。")
             event.accept()  # 确认关闭
@@ -244,6 +246,10 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     md_display = MarketDataDisplay()
     md_display.show()
-    schedule_data_updates()
+
+    timer = threading.Timer(1.0, schedule_data_updates)
+    timer.daemon = True
+    timer.start()
+
     run_wsq()
     sys.exit(app.exec_())
