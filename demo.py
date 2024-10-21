@@ -59,12 +59,21 @@ def update_dataframe():
 
         new_data["Bid_Difference"] = (
             new_data["AU2412.SHF_Bid"] - new_data["XAUCNY.IDC_Bid"]
+            if new_data["AU2412.SHF_Bid"] is not None
+            and new_data["XAUCNY.IDC_Bid"] is not None
+            else None
         )
         new_data["Ask_Difference"] = (
             new_data["AU2412.SHF_Ask"] - new_data["XAUCNY.IDC_Ask"]
+            if new_data["AU2412.SHF_Ask"] is not None
+            and new_data["XAUCNY.IDC_Ask"] is not None
+            else None
         )
         new_data["Latest_Difference"] = (
             new_data["AU2412.SHF_Latest"] - new_data["XAUCNY.IDC_Latest"]
+            if new_data["AU2412.SHF_Ask"] is not None
+            and new_data["XAUCNY.IDC_Ask"] is not None
+            else None
         )
 
         df = pd.concat([df, new_data], ignore_index=True)
@@ -89,7 +98,6 @@ def schedule_data_updates():
     global current_week, stop_timer, last_period
     if stop_timer:
         return
-    update_dataframe()
 
     now = datetime.datetime.now()
     current_period = check_trading_hours(now)
@@ -101,6 +109,11 @@ def schedule_data_updates():
         # 如果当前不在交易时段但存在上一个时段，保存该时段数据
         save_period_data(last_period)
         last_period = None
+
+    if not stop_timer:
+        threading.Timer(
+            1.0, schedule_data_updates
+        ).start()  # Adjust 60 seconds as per your need
 
 
 def myCallback(indata):
@@ -258,10 +271,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     md_display = MarketDataDisplay()
     md_display.show()
-
-    timer = threading.Timer(1.0, schedule_data_updates)
-    timer.daemon = True
-    timer.start()
-
+    schedule_data_updates()
     run_wsq()
     sys.exit(app.exec_())
