@@ -20,6 +20,8 @@ current_data = {prod: {"Bid": None, "Ask": None, "Latest": None} for prod in pro
 current_week = datetime.datetime.now().isocalendar()[1]
 
 stop_timer = False
+last_period = None
+
 
 def find_week_start_end(date):
     """给定日期，返回所在周的开始和结束日期（周一和周日）。"""
@@ -31,17 +33,25 @@ def find_week_start_end(date):
 def check_trading_hours(now):
     """检查当前时间是否在指定的交易时段内。"""
     if now.weekday() == 5 or now.weekday() == 6:
-        return False
-    morning_session = now.time() >= datetime.time(9, 0) and now.time() <= datetime.time(
-        11, 30
-    )
+        return None
+    morning_session = now.time() >= datetime.time(
+        9, 30
+    ) and now.time() <= datetime.time(12, 00)
     afternoon_session = now.time() >= datetime.time(
         13, 30
     ) and now.time() <= datetime.time(15, 0)
-    night_session = now.time() >= datetime.time(21, 0) or now.time() <= datetime.time(
-        2, 30
+    night_session = now.time() >= datetime.time(21, 30) or now.time() <= datetime.time(
+        2, 00
     )
-    return morning_session or afternoon_session or night_session
+
+    if morning_session:
+        return "morning"
+    elif afternoon_session:
+        return "afternoon"
+    elif night_session:
+        return "night"
+    else:
+        return None
 
 
 def update_dataframe():
@@ -67,32 +77,37 @@ def update_dataframe():
         df = pd.concat([df, new_data], ignore_index=True)
 
 
-def save_weekly_data():
+def save_period_data(period):
     global df
     if df.empty:
-        print("没有数据可保存。")
+        print(f"没有{period}时段的数据可保存。")
         return
-    # 获取DataFrame中的最小和最大日期
-    min_date = df["Time"].min().strftime("%Y-%m-%d")
-    max_date = df["Time"].max().strftime("%Y-%m-%d")
-    filename = f"market_data_{min_date}_to_{max_date}.csv"
+
+    # 获取当前日期
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    filename = f"market_data_{current_date}_{period}.csv"
     df.to_csv(filename, index=False)
-    print(f"数据已保存到 {filename}")
-    df = pd.DataFrame(columns=columns)
+    print(f"{period}时段的数据已保存到 {filename}")
+    df = pd.DataFrame(columns=columns)  # 重置DataFrame
 
 
 def schedule_data_updates():
     """定时调度数据更新任务。"""
-    global current_week, stop_timer
+    global current_week, stop_timer, last_period
     if stop_timer:
         return
     update_dataframe()
 
-    new_week = datetime.datetime.now().isocalendar()[1]
-    if new_week != current_week:
-        save_weekly_data()
-        current_week = new_week
+    now = datetime.datetime.now()
+    current_period = check_trading_hours(now)
 
+    if current_period:
+        update_dataframe()
+        last_period = current_period
+    elif last_period:
+        # 如果当前不在交易时段但存在上一个时段，保存该时段数据
+        save_period_data(last_period)
+        last_period = None
 
 def myCallback(indata):
     """处理从WindPy接收的实时数据。"""
@@ -232,13 +247,16 @@ class MarketDataDisplay(QWidget):
             print("没有数据可保存。")
             event.accept()  # 确认关闭
             return
+        
+        if last_period:
+            save_period_data(last_period)
 
         # 获取DataFrame中的最小和最大日期
         min_date = df["Time"].min().strftime("%Y-%m-%d")
         max_date = df["Time"].max().strftime("%Y-%m-%d")
         filename = f"final_data_{min_date}_to_{max_date}.csv"
         df.to_csv(filename, index=False)
-        print(f"数据已保存到 {filename}")
+        print(f"剩余数据已保存到 {filename}")
         event.accept()  # 确认关闭
 
 
