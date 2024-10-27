@@ -8,7 +8,7 @@ import datetime
 import sys
 
 # 产品列表和DataFrame初始化
-products = ["AU2412.SHF", "XAUCNY.IDC"]
+products = ["AU2412.SHF", "SPTAUUSDOZ.IDC"]
 columns = (
     ["Time"]
     + [f"{prod}_Bid" for prod in products]
@@ -61,21 +61,21 @@ def update_dataframe():
             new_data[f"{product}_Latest"] = [current_data[product]["Latest"]]
 
         new_data["Bid_Difference"] = (
-            new_data["XAUCNY.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
+            new_data["SPTAUUSDOZ.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
             if new_data["AU2412.SHF_Bid"] is not None
-            and new_data["XAUCNY.IDC_Bid"] is not None
+            and new_data["SPTAUUSDOZ.IDC_Bid"] is not None
             else None
         )
         new_data["Ask_Difference"] = (
-            new_data["XAUCNY.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
+            new_data["SPTAUUSDOZ.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
             if new_data["AU2412.SHF_Ask"] is not None
-            and new_data["XAUCNY.IDC_Ask"] is not None
+            and new_data["SPTAUUSDOZ.IDC_Ask"] is not None
             else None
         )
         new_data["Latest_Difference"] = (
-            new_data["XAUCNY.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
+            new_data["SPTAUUSDOZ.IDC_Bid"] - new_data["AU2412.SHF_Bid"]
             if new_data["AU2412.SHF_Ask"] is not None
-            and new_data["XAUCNY.IDC_Ask"] is not None
+            and new_data["SPTAUUSDOZ.IDC_Ask"] is not None
             else None
         )
 
@@ -184,10 +184,10 @@ class MarketDataDisplay(QWidget):
             self.ask_layout.addWidget(label_ask)
             self.latest_layout.addWidget(label_latest)
 
-        self.labels_bid["Difference"] = QLabel("XAUCNY.IDC - AU2412.SHF: 等待数据...")
-        self.labels_ask["Difference"] = QLabel("XAUCNY.IDC - AU2412.SHF: 等待数据...")
+        self.labels_bid["Difference"] = QLabel("SPTAUUSDOZ.IDC - AU2412.SHF: 等待数据...")
+        self.labels_ask["Difference"] = QLabel("SPTAUUSDOZ.IDC - AU2412.SHF: 等待数据...")
         self.labels_latest["Difference"] = QLabel(
-            "XAUCNY.IDC - AU2412.SHF: 等待数据..."
+            "SPTAUUSDOZ.IDC - AU2412.SHF: 等待数据..."
         )
         self.bid_layout.addWidget(self.labels_bid["Difference"])
         self.ask_layout.addWidget(self.labels_ask["Difference"])
@@ -231,19 +231,19 @@ class MarketDataDisplay(QWidget):
             latest_diff = latest_data.get("Latest_Difference")
 
             self.labels_bid["Difference"].setText(
-                f"XAUCNY.IDC - AU2412.SHF: {bid_diff:.2f}"
+                f"SPTAUUSDOZ.IDC - AU2412.SHF: {bid_diff:.2f}"
                 if bid_diff is not None
-                else "XAUCNY.IDC - AU2412.SHF: 等待数据..."
+                else "SPTAUUSDOZ.IDC - AU2412.SHF: 等待数据..."
             )
             self.labels_ask["Difference"].setText(
-                f"XAUCNY.IDC - AU2412.SHF: {ask_diff:.2f}"
+                f"SPTAUUSDOZ.IDC - AU2412.SHF: {ask_diff:.2f}"
                 if ask_diff is not None
-                else "XAUCNY.IDC - AU2412.SHF: 等待数据..."
+                else "SPTAUUSDOZ.IDC - AU2412.SHF: 等待数据..."
             )
             self.labels_latest["Difference"].setText(
-                f"XAUCNY.IDC - AU2412.SHF: {latest_diff:.2f}"
+                f"SPTAUUSDOZ.IDC - AU2412.SHF: {latest_diff:.2f}"
                 if latest_diff is not None
-                else "XAUCNY.IDC - AU2412.SHF: 等待数据..."
+                else "SPTAUUSDOZ.IDC - AU2412.SHF: 等待数据..."
             )
 
     def closeEvent(self, event):
