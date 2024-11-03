@@ -1,19 +1,20 @@
 import pandas as pd
 import numpy as np
 from datetime import date
+import glob
 
-def calculate_gap():
+def calculate_gap(au_file_name):
     # Read all CSV files
     spot_usd = pd.read_csv("data/SPTAUUSDOZ.IDC.csv", encoding_errors="replace")
     exchange_rate = pd.read_csv("data/USDCHY.EX.csv", encoding_errors="replace")
     rmb_rate = pd.read_csv("data/OpeningPrice.csv", encoding_errors="replace")
-    au2412 = pd.read_csv("data/AU2412.csv", encoding_errors="replace")
+    au_data = pd.read_csv(f"data/{au_file_name}.csv", encoding_errors="replace")
 
     # Convert DateTime columns to datetime
     spot_usd["DateTime"] = pd.to_datetime(spot_usd["DateTime"])
     exchange_rate["DateTime"] = pd.to_datetime(exchange_rate["DateTime"]).dt.date
     rmb_rate["DateTime"] = pd.to_datetime(rmb_rate["DateTime"]).dt.date
-    au2412["DateTime"] = pd.to_datetime(au2412["DateTime"])
+    au_data["DateTime"] = pd.to_datetime(au_data["DateTime"])
 
     # Calculate S_RMB for each price type (open, high, low, close)
     # First, merge spot_usd with exchange rate based on date
@@ -56,10 +57,10 @@ def calculate_gap():
             spot_with_rates["OPEN_rmb"] / 100 * spot_with_rates["t"]
         )
 
-    # Merge with AU2412
+    # Merge with AU data
     final_data = pd.merge(
         spot_with_rates,
-        au2412,
+        au_data,
         left_on="DateTime",
         right_on="DateTime",
         suffixes=("_spot", ""),
@@ -77,11 +78,18 @@ def calculate_gap():
         ["DateTime", "gap_open", "gap_high", "gap_low", "gap_close"]
     ]
 
-    # Save to CSV
-    output_data.to_csv("price_gaps.csv", index=False)
+    # Save to CSV with specific filename for each AU contract
+    output_filename = f"results/price_gaps_{au_file_name}.csv"
+    output_data.to_csv(output_filename, index=False)
     return output_data
 
 
 if __name__ == "__main__":
-    gaps = calculate_gap()
-    print("Calculation completed. Results saved to 'price_gaps.csv'")
+    # Use glob to find all AU files in the data directory
+    au_files = glob.glob("data/AU*.csv")
+    # Extract just the AU code without 'data/' and '.csv'
+    au_files = [f.replace("data/", "").replace(".csv", "") for f in au_files]
+    
+    for au_file in au_files:
+        gaps = calculate_gap(au_file)
+        print(f"Calculation completed for {au_file}. Results saved to 'price_gaps_{au_file}.csv'")
