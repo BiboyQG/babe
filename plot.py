@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from matplotlib.dates import DateFormatter
 import glob
 
@@ -25,6 +26,9 @@ def plot_gaps(file_path):
     plt.xlabel("Time", fontsize=12)
     plt.ylabel("Gap Value", fontsize=12)
 
+    # Adjust x-axis
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator(interval=1))
+    
     # Format x-axis
     plt.gca().xaxis.set_major_formatter(DateFormatter("%Y-%m-%d"))
     plt.xticks(rotation=45)
