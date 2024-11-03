@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from datetime import date
+from datetime import datetime
 import glob
 
 def calculate_gap(au_file_name):
@@ -42,13 +42,20 @@ def calculate_gap(au_file_name):
         suffixes=("", "_rmb"),
     )
 
-    # Calculate t as days until end of year / 365
-    def days_to_year_end(dt):
-        year_end = date(dt.year, 12, 31)
-        return (year_end - dt).days
+    def parse_expiry_from_filename(filename):
+        # Extract year and month from filename (e.g., 'AU2406' -> 2024, 06)
+        year = 2000 + int(filename[2:4])  # '24' -> 2024
+        month = int(filename[4:6])        # '06' -> 6
+        return datetime(year, month, 1, 2, 30)  # Set to 2:30 AM on 1st of the month
 
-    spot_with_rates["t"] = spot_with_rates["Date"].apply(
-        lambda x: days_to_year_end(x) / 365
+    def calc_time_to_expiry(dt, filename):
+        expiry = parse_expiry_from_filename(filename)
+        diff = (expiry - dt).total_seconds() / (24 * 60 * 60)  # Convert seconds to days
+        return diff / 365  # Convert to years
+
+    # Assuming au_file contains the filename
+    spot_with_rates["t"] = spot_with_rates["DateTime"].apply(
+        lambda x: calc_time_to_expiry(x, au_file_name)
     )
 
     # Calculate F_RMB for each price type
